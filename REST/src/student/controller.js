@@ -56,7 +56,7 @@ const deleteStudent = async (req, res) => {
 
         console.log(`Checking if student with ID ${id} exists`);
         const { rows: studentRows } = await pool.query(queries.checkQuery, [id]);
-        console.log('Student check result:', studentRows);
+        //console.log('Student check result:', studentRows);
         if (studentRows.length === 0) {
             return res.status(404).json({ message: "Student not found!" });
         }
@@ -75,10 +75,31 @@ const deleteStudent = async (req, res) => {
     }
 };
 
+const updateStudent = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const {name, email, age, dob} = req.body;
+
+        if(!id || !name || !email || !age || !dob) return res.status(400).json({message:"All fields are required!"});
+        if(isNaN(id)) return res.status(400).json({message:"Invalid student ID!"});
+
+        //check if student exist 
+        const {rows: studentRows} = await pool.query(queries.checkQuery, [id]);
+        if(studentRows.length === 0) return res.status(404).json({message:"Cannot update:the student with that id doesn't exist!"});
+
+        //update student
+        const {rows} = await pool.query(queries.updateStudentDetails, [name, email, age, dob, id]);
+        res.status(200).json({message:"Student details updated successfully", studentUpdate:rows[0]})
+    } catch (error) {
+        
+    }
+}
+
 
 module.exports = {
     getAllStudents,
     getStudentByID, 
     addStudent,
+    updateStudent,
     deleteStudent
 };
